@@ -1,14 +1,23 @@
 import streamlit as st
 from transformers import AutoModel, AutoTokenizer, AutoModelForSeq2SeqLM
+import os
+from dotenv import load_dotenv
 import torch
+
+# Load environment variables from .env file
+load_dotenv()
+HUGGING_FACE_TOKEN = os.getenv("HUGGING_FACE_TOKEN")
+
 st.title("Translation App with Aya 35B")
 st.markdown("Translate text from English to various languages using Aya 35B model.")
-HUGGING_FACE_TOKEN = st.text_input("Enter your Hugging Face API token:", type="password")
+
 languages = ["French", "German", "Spanish", "Italian", "Hindi", "Portuguese", "Chinese", "Japanese", "Russian", "Korean", "Arabic", "Czech", "Swedish", "Polish", "Romanian", "Vietnamese", "Indonesian", "Turkish", "Greek", "Norwegian", "Bulgarian", "Ukrainian", "Hebrew"]
 
 source_language = st.selectbox("Select source language:", ["English"])
 target_language = st.selectbox("Select target language:", languages)
+
 text_to_translate = st.text_area("Enter text to translate:", "")
+
 @st.cache(allow_output_mutation=True)
 def load_model():
     model_name = "CohereForAI/aya-23-35B"
@@ -18,6 +27,9 @@ def load_model():
 
 if HUGGING_FACE_TOKEN:
     tokenizer, model = load_model()
+else:
+    st.error("Hugging Face token is not set. Please set the HUGGING_FACE_TOKEN environment variable.")
+
 def translate_text(text, src_lang, tgt_lang):
     inputs = tokenizer.encode(f"translate {src_lang} to {tgt_lang}: {text}", return_tensors="pt")
     outputs = model.generate(inputs, max_length=100)
